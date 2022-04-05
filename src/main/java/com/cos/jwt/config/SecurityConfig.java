@@ -12,17 +12,21 @@ import org.springframework.web.filter.CorsFilter;
 
 import com.cos.jwt.filter.MyFilter1;
 import com.cos.jwt.filter.MyFilter3;
+import com.cos.jwt.jwt.JwtAuthorizationFilter;
 import com.cos.jwt.jwt.jwtAuthenticationFilter;
+import com.cos.jwt.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
 public class SecurityConfig extends WebSecurityConfigurerAdapter{
 	
 	@Autowired
 	private CorsConfig corsConfig;
+	
+	@Autowired
+	private UserRepository userRepository;
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
@@ -34,6 +38,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter{
 		.formLogin().disable()  // 폼 로그인을 하지 않음 ( 기본으로 부여받는 /login 페이지 동작안함 )
 		.httpBasic().disable()  // 기본인증 방식 사용하지 않음
 		.addFilter(new jwtAuthenticationFilter(authenticationManager()))   //AuthenticationManager
+		.addFilter(new JwtAuthorizationFilter(authenticationManager(), userRepository))   //AuthenticationManager
 		.authorizeRequests()
 		.antMatchers("api/v1/user/**")
 		.access("hasRole('ROLE_USER') or hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")

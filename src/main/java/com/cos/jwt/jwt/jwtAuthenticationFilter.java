@@ -1,7 +1,7 @@
 package com.cos.jwt.jwt;
 
-import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.Date;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -15,6 +15,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import com.cos.jwt.auth.PrincipalDetails;
 import com.cos.jwt.model.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -82,9 +84,16 @@ public class jwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 		System.out.println("successfulAuthentication 실행됨 : 인증이 완료되었음.");
 		PrincipalDetails principalDetails = (PrincipalDetails)authResult.getPrincipal(); 
 		
+		String jwtToken = JWT.create()
+				.withSubject(principalDetails.getUsername())
+				.withExpiresAt(new Date(System.currentTimeMillis()+JwtProperties.EXPIRATION_TIME))
+				.withClaim("id", principalDetails.getUser().getId())
+				.withClaim("username" , principalDetails.getUser().getUsername())
+				.sign(Algorithm.HMAC512(JwtProperties.SECRET));
 		
+		response.addHeader(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX);
 		
-		super.successfulAuthentication(request, response, chain, authResult);
+
 	}
 	
 }
